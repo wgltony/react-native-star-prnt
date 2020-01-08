@@ -13,7 +13,7 @@ import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.net.Uri;
 import android.provider.MediaStore;
-//import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.StaticLayout;
 import android.text.Layout;
 import android.util.Base64;
@@ -353,9 +353,9 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
   private boolean sendCommand(byte[] commands, StarIOPort port, Promise promise) {
 
     try {
-			/*
-			 * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
-			 */
+      /*
+       * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
+       */
       try {
         Thread.sleep(200);
       } catch (InterruptedException e) {
@@ -365,16 +365,16 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
         return false;
       }
 
-			/*
-			 * Using Begin / End Checked Block method When sending large amounts of raster data,
-			 * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
-			 * "timeout" of the "endCheckedBlock method" while a printing.
-			 *
-			 * If receipt print is success but timeout error occurs(Show message which is "There
-			 * was no response of the printer within the timeout period." ), need to change value
-			 * of timeout more longer in "StarIOPort.getPort" method.
-			 * (e.g.) 10000 -> 30000
-			 */
+      /*
+       * Using Begin / End Checked Block method When sending large amounts of raster data,
+       * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
+       * "timeout" of the "endCheckedBlock method" while a printing.
+       *
+       * If receipt print is success but timeout error occurs(Show message which is "There
+       * was no response of the printer within the timeout period." ), need to change value
+       * of timeout more longer in "StarIOPort.getPort" method.
+       * (e.g.) 10000 -> 30000
+       */
       StarPrinterStatus status;
 
       status = port.beginCheckedBlock();
@@ -419,25 +419,25 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
 
     StarIOPort port = null;
     try {
-			/*
-			 * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
-			 */
+      /*
+       * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
+       */
       port = StarIOPort.getPort(portName, portSettings, 10000, context);
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
       }
 
-			/*
-			 * Using Begin / End Checked Block method When sending large amounts of raster data,
-			 * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
-			 * "timeout" of the "endCheckedBlock method" while a printing.
-			 *
-			 * If receipt print is success but timeout error occurs(Show message which is "There
-			 * was no response of the printer within the timeout period." ), need to change value
-			 * of timeout more longer in "StarIOPort.getPort" method.
-			 * (e.g.) 10000 -> 30000
-			 */
+      /*
+       * Using Begin / End Checked Block method When sending large amounts of raster data,
+       * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
+       * "timeout" of the "endCheckedBlock method" while a printing.
+       *
+       * If receipt print is success but timeout error occurs(Show message which is "There
+       * was no response of the printer within the timeout period." ), need to change value
+       * of timeout more longer in "StarIOPort.getPort" method.
+       * (e.g.) 10000 -> 30000
+       */
       StarPrinterStatus status = port.beginCheckedBlock();
 
       if (status.offline) {
