@@ -44,6 +44,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.io.InputStream;
+
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.starmicronics.stario.PortInfo;
 import com.starmicronics.stario.StarIOPort;
@@ -571,8 +575,17 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
                 boolean bothScale = (command.hasKey("bothScale")) ? command.getBoolean("bothScale") : true;
                 ICommandBuilder.BitmapConverterRotation rotation = (command.hasKey("rotation")) ? getConverterRotation(command.getString("rotation")) : getConverterRotation("Normal");
                 try {
-                    Uri imageUri =  Uri.parse(uriString);
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri);
+                    //Uri imageUri =  Uri.parse(uriString);
+
+                    //Bitmap bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri);
+
+                    URL url = new URL(uriString);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    Bitmap bitmap = BitmapFactory.decodeStream(input);
+
                     if(command.hasKey("absolutePosition")){
                         int position =  command.getInt("absolutePosition");
                         builder.appendBitmapWithAbsolutePosition(bitmap, diffusion, width, bothScale, rotation, position);
@@ -602,6 +615,17 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
             }
         }
     };
+
+
+    // private Bitmap getBitmapFromURL(String src) {
+    //         URL url = new URL(src);
+    //         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    //         connection.setDoInput(true);
+    //         connection.connect();
+    //         InputStream input = connection.getInputStream();
+    //         Bitmap myBitmap = BitmapFactory.decodeStream(input);
+    //         return myBitmap;
+    // }
 
     //ICommandBuilder Constant Functions
     private ICommandBuilder.InternationalType getInternational(String international){
