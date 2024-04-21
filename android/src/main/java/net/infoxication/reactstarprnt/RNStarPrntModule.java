@@ -44,10 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.io.InputStream;
-
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.starmicronics.stario.PortInfo;
 import com.starmicronics.stario.StarIOPort;
@@ -168,7 +164,22 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
 
     String portSettings = getPortSettingsOption(emulation);
     if (starIoExtManager != null && starIoExtManager.getPort() != null) {
-      starIoExtManager.disconnect(null);
+      starIoExtManager.disconnect(new IConnectionCallback() {
+          @Override
+          public void onConnected(ConnectResult connectResult) {
+              if (connectResult == ConnectResult.Success || connectResult == ConnectResult.AlreadyConnected) {
+
+                  promise.resolve("Printer Connected");
+
+              } else {
+                  promise.reject("CONNECT_ERROR", "Error Connecting to the printer");
+              }
+          }
+          @Override
+          public void onDisconnected() {
+              //Do nothing
+          }
+      });
     }
     starIoExtManager = new StarIoExtManager(hasBarcodeReader ? StarIoExtManager.Type.WithBarcodeReader : StarIoExtManager.Type.Standard, portName, portSettings, 10000, context);
     starIoExtManager.setListener(starIoExtManagerListener);
@@ -353,9 +364,9 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
   private boolean sendCommand(byte[] commands, StarIOPort port, Promise promise) {
 
     try {
-      /*
-       * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
-       */
+			/*
+			 * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
+			 */
       try {
         Thread.sleep(200);
       } catch (InterruptedException e) {
@@ -365,16 +376,16 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
         return false;
       }
 
-      /*
-       * Using Begin / End Checked Block method When sending large amounts of raster data,
-       * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
-       * "timeout" of the "endCheckedBlock method" while a printing.
-       *
-       * If receipt print is success but timeout error occurs(Show message which is "There
-       * was no response of the printer within the timeout period." ), need to change value
-       * of timeout more longer in "StarIOPort.getPort" method.
-       * (e.g.) 10000 -> 30000
-       */
+			/*
+			 * Using Begin / End Checked Block method When sending large amounts of raster data,
+			 * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
+			 * "timeout" of the "endCheckedBlock method" while a printing.
+			 *
+			 * If receipt print is success but timeout error occurs(Show message which is "There
+			 * was no response of the printer within the timeout period." ), need to change value
+			 * of timeout more longer in "StarIOPort.getPort" method.
+			 * (e.g.) 10000 -> 30000
+			 */
       StarPrinterStatus status;
 
       status = port.beginCheckedBlock();
@@ -419,25 +430,25 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
 
     StarIOPort port = null;
     try {
-      /*
-       * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
-       */
+			/*
+			 * using StarIOPort3.1.jar (support USB Port) Android OS Version: upper 2.2
+			 */
       port = StarIOPort.getPort(portName, portSettings, 10000, context);
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
       }
 
-      /*
-       * Using Begin / End Checked Block method When sending large amounts of raster data,
-       * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
-       * "timeout" of the "endCheckedBlock method" while a printing.
-       *
-       * If receipt print is success but timeout error occurs(Show message which is "There
-       * was no response of the printer within the timeout period." ), need to change value
-       * of timeout more longer in "StarIOPort.getPort" method.
-       * (e.g.) 10000 -> 30000
-       */
+			/*
+			 * Using Begin / End Checked Block method When sending large amounts of raster data,
+			 * adjust the value in the timeout in the "StarIOPort.getPort" in order to prevent
+			 * "timeout" of the "endCheckedBlock method" while a printing.
+			 *
+			 * If receipt print is success but timeout error occurs(Show message which is "There
+			 * was no response of the printer within the timeout period." ), need to change value
+			 * of timeout more longer in "StarIOPort.getPort" method.
+			 * (e.g.) 10000 -> 30000
+			 */
       StarPrinterStatus status = port.beginCheckedBlock();
 
       if (status.offline) {
@@ -569,32 +580,23 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
                 }else builder.appendQrCode(command.getString("appendQrCode").getBytes(encoding), qrCodeModel, qrCodeLevel, cell);
             } else if (command.hasKey("appendBitmap")){
                 ContentResolver contentResolver = context.getContentResolver();
-                String uriString = command.getString("appendBitmap");
+                String _uriString = command.getString("appendBitmap");
+                String uriString =  _uriString.substring(_uriString.indexOf(",")  + 1);
                 boolean diffusion = (command.hasKey("diffusion")) ? command.getBoolean("diffusion") : true;
                 int width = (command.hasKey("width")) ? command.getInt("width") : 576;
                 boolean bothScale = (command.hasKey("bothScale")) ? command.getBoolean("bothScale") : true;
                 ICommandBuilder.BitmapConverterRotation rotation = (command.hasKey("rotation")) ? getConverterRotation(command.getString("rotation")) : getConverterRotation("Normal");
-                try {
-                    //Uri imageUri =  Uri.parse(uriString);
 
-                    //Bitmap bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri);
-
-                    URL url = new URL(uriString);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(input);
-
-                    if(command.hasKey("absolutePosition")){
-                        int position =  command.getInt("absolutePosition");
-                        builder.appendBitmapWithAbsolutePosition(bitmap, diffusion, width, bothScale, rotation, position);
-                    }else if(command.hasKey("alignment")){
-                        ICommandBuilder.AlignmentPosition alignmentPosition = getAlignment(command.getString("alignment"));
-                        builder.appendBitmapWithAlignment(bitmap, diffusion, width, bothScale, rotation, alignmentPosition);
-                    }else builder.appendBitmap(bitmap, diffusion, width, bothScale, rotation);
-                } catch (IOException e) {
-
+                final byte[] decodedBytes = Base64.decode(uriString, Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                if(command.hasKey("absolutePosition")){
+                    int position =  command.getInt("absolutePosition");
+                    builder.appendBitmapWithAbsolutePosition(bitmap, diffusion, width, bothScale, rotation, position);
+                }else if(command.hasKey("alignment")){
+                    ICommandBuilder.AlignmentPosition alignmentPosition = getAlignment(command.getString("alignment"));
+                    builder.appendBitmapWithAlignment(bitmap, diffusion, width, bothScale, rotation, alignmentPosition);
+                }else {
+                  builder.appendBitmap(bitmap, diffusion, width, bothScale, rotation);
                 }
             } else if (command.hasKey("appendBitmapText")){
                 int fontSize = (command.hasKey("fontSize")) ? command.getInt("fontSize") : 25;
@@ -615,17 +617,6 @@ public class RNStarPrntModule extends ReactContextBaseJavaModule {
             }
         }
     };
-
-
-    // private Bitmap getBitmapFromURL(String src) {
-    //         URL url = new URL(src);
-    //         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    //         connection.setDoInput(true);
-    //         connection.connect();
-    //         InputStream input = connection.getInputStream();
-    //         Bitmap myBitmap = BitmapFactory.decodeStream(input);
-    //         return myBitmap;
-    // }
 
     //ICommandBuilder Constant Functions
     private ICommandBuilder.InternationalType getInternational(String international){
