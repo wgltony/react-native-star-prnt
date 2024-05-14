@@ -588,6 +588,10 @@ export interface PrintCommand {
      * sends a appendPeripheral command to the printer for channel number: Example: 1 = No1, 2 = No2
      */
     openCashDrawer?: number;
+    /**
+     * Enable bold font style.
+     */
+    isBold?: boolean;
 }
 /**
  * Emulation constants
