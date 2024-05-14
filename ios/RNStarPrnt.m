@@ -560,8 +560,18 @@ RCT_REMAP_METHOD(print, portName:(NSString *)portName
             NSInteger width = ([command valueForKey:@"width"]) ? [[command valueForKey:@"width"] intValue] : 576;
             NSString *fontName = ([command valueForKey:@"font"]) ? [command valueForKey:@"font"] : @"Menlo";
             NSInteger fontSize = ([command valueForKey:@"fontSize"]) ? [[command valueForKey:@"fontSize"] intValue] : 12;
+            BOOL isBold = [[command valueForKey:@"isBold"] boolValue]; // Check if isBold is true
 
-            UIFont *font = [UIFont fontWithName:fontName size:fontSize * 2];
+            // Log the value of isBold
+            //NSLog(@"isBold: %@", isBold ? @"YES" : @"NO");
+
+            UIFont *font;
+            if (isBold) {
+                font = [UIFont fontWithName:[NSString stringWithFormat:@"%@-Bold", fontName] size:fontSize * 2]; // Specify bold font
+            } else {
+                font = [UIFont fontWithName:fontName size:fontSize * 2]; // Regular font
+            }
+            
             UIImage *image = [self imageWithString:text font:font width:width];
 
             [builder appendBitmap:image diffusion:NO];
